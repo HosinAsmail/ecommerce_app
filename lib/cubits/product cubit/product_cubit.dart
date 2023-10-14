@@ -37,6 +37,9 @@ class ProductCubit extends Cubit<ProductState> {
       requestNumber = 0;
       addingGridListener();
     }
+    if(isFirst==true){
+      
+    }
     try {
       if (!categoryProducts.containsKey(categoriesId)) {
         List<Map<String, dynamic>> data =
