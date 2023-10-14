@@ -1,0 +1,1 @@
+enum StatusFailureRequest { noData, severFailure}

@@ -1,0 +1,107 @@
+{
+    "en_language": "English",
+    "@en_language": {
+        "description": "the english language"
+    },
+    "ar_language": "Arabic",
+    "@ar_language": {
+        "description": "the arabic language"
+    },
+    "choose_language": "choose your preferred language",
+    "@choose_language": {
+        "description": "choose your preferred language"
+    },
+    "onboarding_next": "next",
+    "@onboarding_next": {
+        "description": "next"
+    },
+    "onboarding_skip": "skip",
+    "@onboarding_skip": {
+        "description": "skip"
+    },
+    "onboarding_done": "done",
+    "@onboarding_done": {
+        "description": "done"
+    },
+    "onboarding_title_page_one": "Choose Product",
+    "@onboarding_title_page_one": {
+        "description": "onboarding_title_page_one"
+    },
+    "onboarding_body_page_one": "We Have a 100K Product , Choose \n Your Product From  Our \n E-commerce Shop",
+    "@onboarding_body_page_one": {
+        "description": "onboarding_body_page_one"
+    },
+    "onboarding_title_page_two": "Easy And Safe Payment",
+    "@onboarding_title_page_two": {
+        "description": "onboarding_title_page_two"
+    },
+    "onboarding_body_page_two": "We Have one of the best ways \n to pay safely and easily in our \n E-commerce Shop",
+    "@onboarding_body_page_two": {
+        "description": "onboarding_body_page_two"
+    },
+    "onboarding_title_page_three": "Track Your Order",
+    "@onboarding_title_page_three": {
+        "description": "onboarding_title_page_three"
+    },
+    "onboarding_body_page_three": "Watch your order while it is being prepared,\n when it has been done,\n and when it is on the road to you",
+    "@onboarding_body_page_three": {
+        "description": "onboarding_body_page_three"
+    },
+    "categories_word": "Categories",
+    "@categories_word": {
+        "description": "categories"
+    },
+    "top_selling": "Top Selling",
+    "@top_selling": {
+        "description": "top_selling"
+    },
+    "offer": "Offer",
+    "@offer": {
+        "description": "offer word"
+    },
+    "find_product": "Find Product",
+    "@find_product": {
+        "description": "onboarding_body_page_three"
+    },
+    "add_to_cart": "Add to Cart",
+    "@add_to_cart": {
+        "description": "add_to_cart"
+    },
+    "remove_from_cart": "Remove From Cart",
+    "@remove_from_cart": {
+        "description": "remove_from_cart"
+    },
+    "no_cart_products": "Go and add products to the cart 😎",
+    "@no_cart_products": {
+        "description": "no_cart_products"
+    },
+    "cart": "Cart",
+    "@cart": {
+        "description": "cart"
+    },
+    "you_have_products_added_to_cart": "You have {products_length} products in your cart",
+    "@you_have_products_added_to_cart": {
+        "description": "cart",
+        "placeholders": {
+            "products_length": {
+                "type": "int"
+            }
+        }
+    },
+    "products_price": "Products' Price",
+    "@products_price": {
+        "description": "products_price"
+    },
+    "shipping": "Shipping",
+    "@shipping": {
+        "description": "shipping"
+    },
+    "total_price": "Total Price",
+    "@total_price": {
+        "description": "total"
+    },
+    "place_order": "Place Order",
+    "@place_order": {
+        "description": "place_order"
+    }
+}
