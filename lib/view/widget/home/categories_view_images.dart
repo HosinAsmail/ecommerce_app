@@ -26,7 +26,7 @@ class CategoriesViewImages extends StatelessWidget {
       onTap: () {
         context
             .read<ProductCubit>()
-            .getProduct(index, categoriesModel.categoriesId!,isFirst: true);
+            .getProduct(index, categoriesModel.categoriesId!);
         Get.toNamed(AppRoute.productsScreen, arguments: {
           "categories": categories,
         });

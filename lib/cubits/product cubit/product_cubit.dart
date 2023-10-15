@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_use_of_protected_member
+
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:test/core/api/crud.dart';
@@ -19,27 +21,18 @@ class ProductCubit extends Cubit<ProductState> {
   Crud crud = Crud();
   String? categoryId;
   UserModel userModel = UserModel.instance;
-  Map<String, List<ProductModel>> categoryProducts = {};
+  Map<String, Map<String, dynamic>> categoryProducts = {};
   List<ProductModel> offers = [];
   StoreAllData storeAllData = StoreAllData();
   ScrollController gridControl = ScrollController();
-  int requestNumber = 0;
   void getProduct(
     int currentSelected,
     String categoriesId,
   ) async {
-    // removingGridListener();
-    //WARNING: be careful here
-    emit(ProductLoading(isFirstGetData: isFirst));
     selected = currentSelected;
     categoryId = categoriesId;
-    if (isFirst) {
-      requestNumber = 0;
-      addingGridListener();
-    }
-    if(isFirst==true){
-      
-    }
+    emit(ProductLoading(isFirstGetData: isFirst));
+    addingGridListener();
     try {
       if (!categoryProducts.containsKey(categoriesId)) {
         List<Map<String, dynamic>> data =
@@ -49,14 +42,23 @@ class ProductCubit extends Cubit<ProductState> {
           for (final product in data) {
             products.add(ProductModel.fromJson(product));
           }
-          categoryProducts[categoriesId] = products;
+          categoryProducts[categoriesId] == null
+              ? categoryProducts[categoriesId] = {
+                  "products": products,
+                  "requestNumber": 1
+                }
+              : categoryProducts[categoriesId] = {
+                  "products": products,
+                  "requestNumber":
+                      categoryProducts[categoriesId]!["requestNumber"]++
+                };
+
           print("the data has been got from the locale database");
           emit(ProductSuccess());
         } else {
           getAsyncProduct();
         }
       } else {
-        // addingGridListener();
         emit(ProductSuccess());
       }
     } on Exception catch (e) {
@@ -68,15 +70,13 @@ class ProductCubit extends Cubit<ProductState> {
     emit(ProductLoading(isFirstGetData: isFirst));
     if (await checkInternetFunction()) {
       try {
-        if (isFirst) {
-          requestNumber = 0;
-          // ignore: invalid_use_of_protected_member
-          // remove the previous one if existed and add another
-          addingGridListener();
-        }
         ProductRemote productRemote = ProductRemote(crud);
         var response = await productRemote.getProductsByCategory(
-            categoryId!, userModel.userId, requestNumber.toString());
+            categoryId!,
+            userModel.userId,
+            isFirst
+                ? "0"
+                : categoryProducts[categoryId]!["requestNumber"].toString());
         if (response is Map<String, dynamic>) {
           List<ProductModel> products = [];
           // storeAllData.deleteData('products',
@@ -85,10 +85,21 @@ class ProductCubit extends Cubit<ProductState> {
             products.add(ProductModel.fromJson(product));
             // storeAllData.insertData('products', product);
           }
-          requestNumber++;
-          categoryProducts[categoryId!] == null
-              ? categoryProducts[categoryId!] = products
-              : categoryProducts[categoryId!]!.addAll(products);
+          if (categoryProducts[categoryId] == null) {
+            categoryProducts[categoryId!] = {
+              "products": products,
+              "requestNumber": 1
+            };
+          } else {
+            categoryProducts[categoryId]!["products"]!.addAll(products);
+            categoryProducts[categoryId]!["requestNumber"]++;
+          }
+
+          print(
+              "${categoryProducts[categoryId]!["products"]!.length}++++++++++++++++++++++++++++++++++++++++++++++++++");
+          // categoryProducts[categoryId!] == null
+          // ? categoryProducts[categoryId!] = products
+          // : categoryProducts[categoryId!]!.addAll(products);
         }
 
         String? failureMessage =
@@ -171,26 +182,35 @@ class ProductCubit extends Cubit<ProductState> {
               "your offline, please turn on the internet and try again"));
     }
   }
-
   void addingGridListener() async {
-    // ignore: invalid_use_of_protected_member
-    if (!gridControl.hasListeners) {
+    removingGridListener();
+    await Future.delayed(const Duration(seconds: 1));
+    if (categoryProducts[categoryId] == null) {
       print('=====================================adding the grid listener');
-      await Future.delayed(const Duration(seconds: 1));
+      gridControl.addListener(onGridScroll);
+    } else if (!categoryProducts[categoryId]!["over"]) {
+      print('=====================================adding the grid listener');
       gridControl.addListener(onGridScroll);
     } else {
-      print(
-          "==================================the listener is already existed");
+      return;
     }
   }
 
   void removingGridListener() {
-    print('=====================================removing the grid listener');
-    gridControl.removeListener(onGridScroll);
+    if (gridControl.hasListeners) {
+      print('=====================================removing the grid listener');
+      gridControl.removeListener(onGridScroll);
+    } else {
+      print("====================================no listeners");
+    }
   }
 
   void disposeGridControl() {
     gridControl.dispose();
+  }
+
+  void setCategoryDataCompleted() {
+    categoryProducts[categoryId]!["over"] = true;
   }
 
   void onGridScroll() {
@@ -200,11 +220,39 @@ class ProductCubit extends Cubit<ProductState> {
     }
   }
 
-  bool get isFirst {
-    if (categoryProducts.containsKey(categoryId)) {
+  void refreshProducts() {
+    int requestNumber = categoryProducts[categoryId]!["requestNumber"];
+    categoryProducts[categoryId]!["requestNumber"] = 0;
+    List<ProductModel> productsTemporary =
+        categoryProducts[categoryId]!["products"];
+    categoryProducts[categoryId]!["products"].clear();
+    try {
+      getAsyncProduct();
+    } on Exception {
+      print(
+          "============================================it is working as expected");
+      categoryProducts[categoryId]!["requestNumber"] = requestNumber;
+      categoryProducts[categoryId]!["products"] = productsTemporary;
+    }
+  }
+
+  bool isEnoughData() {
+    if (categoryProducts[categoryId] == null) {
+      return false;
+    } else if (categoryProducts[categoryId]!["products"].length < 6) {
       return false;
     } else {
       return true;
+    }
+  }
+
+  bool get isFirst {
+    if (categoryProducts[categoryId] == null) {
+      return true;
+    } else if (categoryProducts[categoryId]!["products"].isEmpty) {
+      return true;
+    } else {
+      return false;
     }
   }
 }

@@ -38,8 +38,12 @@ class ProductsGrid extends StatelessWidget {
           } else {
             String categoriesId = context.read<ProductCubit>().categoryId!;
             products =
-                context.read<ProductCubit>().categoryProducts[categoriesId] ??
-                    [];
+                context.read<ProductCubit>().categoryProducts[categoriesId] ==
+                        null
+                    ? []
+                    : context
+                        .read<ProductCubit>()
+                        .categoryProducts[categoriesId]!["products"];
           }
           return products.isEmpty
               ? const Center(child: Text('no data'))

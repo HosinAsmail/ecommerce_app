@@ -18,7 +18,6 @@ class ProductsListView extends StatelessWidget {
   Widget build(BuildContext context) {
     ProductCubit productCubit = context.read<ProductCubit>();
 
-    productCubit.addingGridListener();
     return Column(
       children: [
         CategoriesViewText(
@@ -48,9 +47,12 @@ class ProductsListView extends StatelessWidget {
                 //*dd
                 builder: (context, state) {
                   if (state is ProductSuccess) {
-                    return const Center(child: CircularProgressIndicator());
+                    return productCubit.isEnoughData()
+                        ? const Center(child: CircularProgressIndicator())
+                        : Container();
                   } else if (state is ProductFailure) {
                     if (state.errorMessage == "no more products to show") {
+                      productCubit.setCategoryDataCompleted();
                       productCubit.removingGridListener();
                     }
                     return Center(child: Text(state.errorMessage));

@@ -19,60 +19,66 @@ class ProductScreen extends StatelessWidget {
     return DefaultTabController(
       length: 5,
       child: Scaffold(
-        body: RefreshIndicator(
-          onRefresh: () async {
-            context.read<ProductCubit>().getAsyncProduct();
+        body: WillPopScope(
+          onWillPop: () async {
+            context.read<ProductCubit>().removingGridListener();
+            return true;
           },
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: SizedBox(
-              height: Get.height,
-              width: Get.width,
-              child: Column(
-                children: [
-                  const SearchProductBar(),
-                  BlocBuilder<SearchCubit, SearchState>(
-                    builder: (context, state) {
-                      if (state is SearchLoading) {
-                        return const Column(
-                          children: [
-                            SizedBox(
-                              height: 200,
-                            ),
-                            CircularProgressIndicator(),
-                          ],
-                        );
-                      } else if (state is SearchSuccess) {
-                        // TODO: fix the scrolling pagination
-                        return SearchProductsGrid(
-                          products:
-                              context.read<SearchCubit>().searchedProducts,
-                        );
-                      } else if (state is SearchInitial ||
-                          state is StartSearching) {
-                        return context.read<SearchCubit>().isStartSearching
-                            ? const Text('')
-                            : ProductsListView(categories: categories);
-                      } else if (state is SearchFailure) {
-                        return Column(
-                          children: [
-                            const SizedBox(
-                              height: 200,
-                            ),
-                            Text(
-                              state.errorMessage,
-                              style: const TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        );
-                      } else {
-                        return const SizedBox();
-                      }
-                    },
-                  ),
-                ],
+          child: RefreshIndicator(
+            onRefresh: () async {
+              context.read<ProductCubit>().refreshProducts();
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: SizedBox(
+                height: Get.height,
+                width: Get.width,
+                child: Column(
+                  children: [
+                    const SearchProductBar(),
+                    BlocBuilder<SearchCubit, SearchState>(
+                      builder: (context, state) {
+                        if (state is SearchLoading) {
+                          return const Column(
+                            children: [
+                              SizedBox(
+                                height: 200,
+                              ),
+                              CircularProgressIndicator(),
+                            ],
+                          );
+                        } else if (state is SearchSuccess) {
+                          // TODO: fix the scrolling pagination
+                          return SearchProductsGrid(
+                            products:
+                                context.read<SearchCubit>().searchedProducts,
+                          );
+                        } else if (state is SearchInitial ||
+                            state is StartSearching) {
+                          return context.read<SearchCubit>().isStartSearching
+                              ? const Text('')
+                              : ProductsListView(categories: categories);
+                        } else if (state is SearchFailure) {
+                          return Column(
+                            children: [
+                              const SizedBox(
+                                height: 200,
+                              ),
+                              Text(
+                                state.errorMessage,
+                                style: const TextStyle(
+                                    fontSize: 14, fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          );
+                        } else {
+                          return const SizedBox();
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -81,4 +87,3 @@ class ProductScreen extends StatelessWidget {
     );
   }
 }
-
