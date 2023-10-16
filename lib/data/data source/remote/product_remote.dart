@@ -11,9 +11,9 @@ class ProductRemote {
     return resp;
   }
 
-  getOffers(String usersId) async {
+  getOffers(String usersId,String requestNumber) async {
     var response =
-        await crud.postData(AppLinks.getOffersLink, {'users_id': usersId});
+        await crud.postData(AppLinks.getOffersLink, {'users_id': usersId,"request_number":requestNumber});
     var resp = response.fold((l) => l, (r) => r);
     return resp;
   }

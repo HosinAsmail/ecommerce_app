@@ -23,8 +23,12 @@ class ProductCubit extends Cubit<ProductState> {
   UserModel userModel = UserModel.instance;
   Map<String, Map<String, dynamic>> categoryProducts = {};
   List<ProductModel> offers = [];
+  int requestOfferNumber = 0;
+  bool isOfferOver = false;
   StoreAllData storeAllData = StoreAllData();
   ScrollController gridControl = ScrollController();
+
+  //* products:
   void getProduct(
     int currentSelected,
     String categoriesId,
@@ -94,12 +98,6 @@ class ProductCubit extends Cubit<ProductState> {
             categoryProducts[categoryId]!["products"]!.addAll(products);
             categoryProducts[categoryId]!["requestNumber"]++;
           }
-
-          print(
-              "${categoryProducts[categoryId]!["products"]!.length}++++++++++++++++++++++++++++++++++++++++++++++++++");
-          // categoryProducts[categoryId!] == null
-          // ? categoryProducts[categoryId!] = products
-          // : categoryProducts[categoryId!]!.addAll(products);
         }
 
         String? failureMessage =
@@ -124,64 +122,6 @@ class ProductCubit extends Cubit<ProductState> {
     }
   }
 
-  void getOffers({bool isFirst = false}) async {
-    emit(ProductLoading(isFirstGetData: isFirst));
-    try {
-      if (offers.isEmpty) {
-        // List<Map<String, dynamic>> data =
-        //     await storeAllData.selectProductByCategory(categoriesId);
-        // if (data.isNotEmpty) {
-        //   for (final product in data) {
-        //     offers.add(ProductModel.fromJson(product));
-        //   }
-        //   print("the data has been got from the locale database");
-        //   emit(ProductSuccess());
-        // } else {
-        getAsyncOffers(isFirst: isFirst);
-        // }
-      } else {
-        emit(ProductSuccess());
-      }
-    } on Exception catch (e) {
-      emit(ProductFailure(errorMessage: "unknown problem : ${e.toString()} "));
-    }
-  }
-
-  void getAsyncOffers({bool isFirst = false}) async {
-    emit(ProductLoading(isFirstGetData: isFirst));
-    if (await checkInternetFunction()) {
-      try {
-        ProductRemote productRemote = ProductRemote(crud);
-        var response = await productRemote.getOffers(userModel.userId);
-        if (response is Map<String, dynamic>) {
-          // storeAllData.deleteData('products',
-          // where: "categories_id='$categoryId'");
-          for (final product in response['data']) {
-            offers.add(ProductModel.fromJson(product));
-            // storeAllData.insertData('products', product);
-          }
-        }
-
-        String? failureMessage = handlingFailureMessage(response, "no data");
-        if (failureMessage != null) {
-          emit(ProductFailure(errorMessage: failureMessage));
-        } else {
-          emit(ProductSuccess());
-        }
-      } on Exception catch (e) {
-        if (e is ClientException) {
-          emit(const ProductFailure(
-              errorMessage: "the internet is slow, try again"));
-        }
-        emit(
-            ProductFailure(errorMessage: "unknown problem : ${e.toString()} "));
-      }
-    } else {
-      emit(const ProductFailure(
-          errorMessage:
-              "your offline, please turn on the internet and try again"));
-    }
-  }
   void addingGridListener() async {
     removingGridListener();
     await Future.delayed(const Duration(seconds: 1));
@@ -209,15 +149,16 @@ class ProductCubit extends Cubit<ProductState> {
     gridControl.dispose();
   }
 
-  void setCategoryDataCompleted() {
-    categoryProducts[categoryId]!["over"] = true;
-  }
-
   void onGridScroll() {
     print("=======================I am listening ");
     if (gridControl.position.maxScrollExtent == gridControl.offset) {
       getAsyncProduct();
     }
+  }
+
+  void setCategoryDataCompleted() {
+    categoryProducts[categoryId]!["over"] = true;
+    removingGridListener();
   }
 
   void refreshProducts() {
@@ -236,7 +177,7 @@ class ProductCubit extends Cubit<ProductState> {
     }
   }
 
-  bool isEnoughData() {
+  bool isEnoughProducts() {
     if (categoryProducts[categoryId] == null) {
       return false;
     } else if (categoryProducts[categoryId]!["products"].length < 6) {
@@ -250,6 +191,138 @@ class ProductCubit extends Cubit<ProductState> {
     if (categoryProducts[categoryId] == null) {
       return true;
     } else if (categoryProducts[categoryId]!["products"].isEmpty) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  // * Offers:
+  void getOffers() async {
+    emit(ProductLoading(isFirstGetData: isFirstOffer));
+    addingGridOfferListener();
+    try {
+      if (offers.isEmpty) {
+        // List<Map<String, dynamic>> data =
+        //     await storeAllData.selectProductByCategory(categoriesId);
+        // if (data.isNotEmpty) {
+        //   for (final product in data) {
+        //     offers.add(ProductModel.fromJson(product));
+        //   }
+        //   print("the data has been got from the locale database");
+        //   emit(ProductSuccess());
+        // } else {
+        getAsyncOffers();
+        // }
+      } else {
+        emit(ProductSuccess());
+      }
+    } on Exception catch (e) {
+      emit(ProductFailure(errorMessage: "unknown problem : ${e.toString()} "));
+    }
+  }
+
+  void getAsyncOffers() async {
+    emit(ProductLoading(isFirstGetData: isFirstOffer));
+    if (await checkInternetFunction()) {
+      try {
+        ProductRemote productRemote = ProductRemote(crud);
+        var response = await productRemote.getOffers(userModel.userId,
+            isFirstOffer ? "0" : requestOfferNumber.toString());
+        if (response is Map<String, dynamic>) {
+          // storeAllData.deleteData('products',
+          // where: "categories_id='$categoryId'");
+          for (final product in response['data']) {
+            offers.add(ProductModel.fromJson(product));
+            // storeAllData.insertData('products', product);
+          }
+          requestOfferNumber++;
+        }
+
+        String? failureMessage =
+            handlingFailureMessage(response, "no more products to show");
+        if (failureMessage != null) {
+          emit(ProductFailure(errorMessage: failureMessage));
+        } else {
+          emit(ProductSuccess());
+        }
+      } on Exception catch (e) {
+        if (e is ClientException) {
+          emit(const ProductFailure(
+              errorMessage: "the internet is slow, try again"));
+        }
+        emit(
+            ProductFailure(errorMessage: "unknown problem : ${e.toString()} "));
+      }
+    } else {
+      emit(const ProductFailure(
+          errorMessage:
+              "your offline, please turn on the internet and try again"));
+    }
+  }
+
+  void addingGridOfferListener() async {
+    removingGridOfferListener();
+    if (!isOfferOver) {
+      await Future.delayed(const Duration(seconds: 1));
+      print('=====================================adding the grid listener');
+      gridControl.addListener(onGridOfferScroll);
+    } else {
+      print("========================================no way to add a listener");
+    }
+  }
+
+  void removingGridOfferListener() {
+    if (gridControl.hasListeners) {
+      print('=====================================removing the grid listener');
+      gridControl.removeListener(onGridOfferScroll);
+    } else {
+      print("====================================no listeners");
+    }
+  }
+
+  void disposeGridOfferControl() {
+    gridControl.dispose();
+  }
+
+  bool isEnoughOffers() {
+    if (offers.length < 6) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  void onGridOfferScroll() {
+    print("=======================I am listening ");
+    if (gridControl.position.maxScrollExtent == gridControl.offset) {
+      getAsyncOffers();
+    }
+  }
+
+  void setOfferCompleted() {
+    isOfferOver = true;
+    removingGridOfferListener();
+  }
+
+  void refreshOffers() {
+    int requestNumber = requestOfferNumber;
+    requestOfferNumber = 0;
+    List<ProductModel> offersTemporary = offers;
+    offers.clear();
+    try {
+      addingGridOfferListener();
+      getAsyncOffers();
+    } on Exception {
+      print(
+          "============================================it is working as expected");
+      requestOfferNumber = requestNumber;
+      categoryProducts[categoryId]!["products"] = offersTemporary;
+    }
+  }
+
+  bool get isFirstOffer {
+    if (offers.isEmpty) {
       return true;
     } else {
       return false;

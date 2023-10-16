@@ -54,7 +54,7 @@ class ProductsGrid extends StatelessWidget {
                       const NeverScrollableScrollPhysics(), // because we are in the list view
                   shrinkWrap: true,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      childAspectRatio: 0.57, crossAxisCount: 2),
+                      childAspectRatio: 0.5, crossAxisCount: 2),
                   itemBuilder: (context, index) {
                     ProductModel productModel = products[index];
                     return ProductCard(
